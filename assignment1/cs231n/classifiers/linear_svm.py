@@ -70,17 +70,34 @@ def svm_loss_vectorized(W, X, y, reg):
   L = np.zeros([num_classes, 1])
 
   # loop over training samples
-  for i in xrange(num_train):
-      scores = W.T.dot(X[i]) #.dot(W)  # score of the given sample
-      correct_class_score = scores[y[i]]  # get weight of the correct score
-      margin = np.maximum(0, scores - correct_class_score + 1)
-      loss = margin.mean()
+  #for i in xrange(num_train):
+  #    scores = W.T.dot(X[i]) #.dot(W)  # score of the given sample
+  #    correct_class_score = scores[y[i]]  # get weight of the correct score
+  #    margin = np.maximum(0, scores - correct_class_score + 1)
+  #    loss = margin.mean()
 
       # calculate gradient
-      c = (margin > 0).astype(int)
-      c[y[i]] = -(margin > 0).astype(int).sum()
-      tmp = X[i,:]
-      dW += tmp[:,np.newaxis].dot(c[:,np.newaxis].T)
+  #    c = (margin > 0).astype(int)
+  #    c[y[i]] = -(margin > 0).astype(int).sum()
+  #    tmp = X[i,:]
+  #    dW += tmp[:,np.newaxis].dot(c[:,np.newaxis].T)
+
+  scores = X.dot(W)  # .dot(W)  # score of the given sample
+  idx = np.ravel_multi_index([range(0, num_train ), y], [num_train, num_classes])
+  correct_class_score = scores.take(idx)  # get weight of the correct score
+  margin = np.maximum(0, scores - correct_class_score[:,np.newaxis] + 1)
+
+  loss = margin.mean()
+
+  # calculate gradient
+  c = (margin > 0).astype(int) # indicator function
+  c[:,y] = -(margin > 0).astype(int).sum(axis=1)
+
+  #print(c)
+
+  tmp = X[i, :]
+  dW += tmp[:, np.newaxis].dot(c[:, np.newaxis].T)
+
 
   dW = dW / (num_classes * num_train)
 
