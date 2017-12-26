@@ -85,13 +85,26 @@ def svm_loss_vectorized(W, X, y, reg):
   scores = X.dot(W)  # .dot(W)  # score of the given sample
   idx = np.ravel_multi_index([range(0, num_train ), y], [num_train, num_classes])
   correct_class_score = scores.take(idx)  # get weight of the correct score
+
   margin = np.maximum(0, scores - correct_class_score[:,np.newaxis] + 1)
 
-  loss = margin.mean()
+  tmp = margin.copy().ravel()
+  tmp[idx] = 0
+  loss = tmp.reshape([margin.shape[0], margin.shape[1]]).sum()
 
   # calculate gradient
   c = (margin > 0).astype(int) # indicator function
-  c[:,y] = -(margin > 0).astype(int).sum(axis=1)
+
+  print(scores[0:2,:])
+  print(correct_class_score[0:2])
+  print(margin[0:2,:])
+  print(c[0:2,:])
+
+  #change value of indicator function for the correct labels
+  # Actually, it's sum of
+  #c[:,y] = -(margin > 0).astype(int).sum(axis=1)
+
+  #print(c[0,:])
 
   #print(c)
 
