@@ -35,7 +35,6 @@ def softmax_loss_naive(W, X, y, reg):
 
     print('Test')
     for k in xrange(num_train):
-
         # forward propagation
         f = W.T.dot(X[k,:])
         a = np.exp(f)
@@ -44,9 +43,10 @@ def softmax_loss_naive(W, X, y, reg):
         loss -= np.log(r)
 
         # forward propagation
-        for i in xrange(W.shape[0]): #features loop
-            for j in xrange(W.shape[1]): # classes loop
-                dW[i,j] += -X[k,i]*a[j]*(int(j==y[k])*a_sum-a[y[k]])/(a[y[k]]*a_sum)
+        for j in xrange(W.shape[1]): # classes loop
+            c = (int(j==y[k])*a_sum-a[y[k]])/(a[y[k]]*a_sum)
+            for i in xrange(W.shape[0]):  # features loop
+                dW[i,j] += -X[k,i]*a[j]*c
 
     loss /=num_train
     loss +=reg*np.sum(W*W)
@@ -74,7 +74,31 @@ def softmax_loss_vectorized(W, X, y, reg):
     # here, it is easy to run into numeric instability. Don't forget the        #
     # regularization!                                                           #
     #############################################################################
-    pass
+    num_classes = W.shape[1]
+    num_train = X.shape[0]
+
+    print('Test')
+    cls = np.arange(10)
+
+    for k in xrange(num_train):
+        # forward propagation
+        f = W.T.dot(X[k, :])
+        a = np.exp(f)
+        a = a[:,np.newaxis]
+        a_sum = a.sum()
+        r = a[y[k]] / a.sum()
+        loss -= np.log(r)
+
+        sam = X[k, :]
+        # backward propagation
+        c = ((cls == y[k]).astype(int)*a_sum - a[y[k]])/(a[y[k]] * a_sum)
+        c = c[:,np.newaxis]
+        c = np.multiply(c, a)
+        dW += - np.dot(sam[:,np.newaxis],c.T)
+
+    loss /= num_train
+    loss += reg * np.sum(W * W)
+    dW /= num_train
     #############################################################################
     #                          END OF YOUR CODE                                 #
     #############################################################################
