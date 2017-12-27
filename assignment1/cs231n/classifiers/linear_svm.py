@@ -74,7 +74,7 @@ def svm_loss_vectorized(W, X, y, reg):
 
   tmp = margin.copy().ravel()
   tmp[idx] = 0
-  loss = tmp.sum()
+  loss = tmp.sum()/num_train + reg*np.sum(W * W)
 
   # calculate gradient
   # indicator function
@@ -85,6 +85,6 @@ def svm_loss_vectorized(W, X, y, reg):
   c_ravel[idx] = -c.sum(axis=1)
 
   dW = X.T.dot(c)
-  dW = dW / (num_classes * num_train)
+  dW = dW/(num_classes * num_train)
 
   return loss, dW
