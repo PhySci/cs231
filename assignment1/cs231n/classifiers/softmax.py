@@ -77,7 +77,6 @@ def softmax_loss_vectorized(W, X, y, reg):
     num_classes = W.shape[1]
     num_train = X.shape[0]
 
-    print('Test')
     cls = np.arange(10)
 
     for k in xrange(num_train):
