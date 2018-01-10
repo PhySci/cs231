@@ -37,16 +37,19 @@ def softmax_loss_naive(W, X, y, reg):
     for k in xrange(num_train):
         # forward propagation
         f = W.T.dot(X[k,:])
-        a = np.exp(f)
-        a_sum = a.sum()
-        r = a[y[k]]/a.sum()
+        e = np.exp(f)
+        e_sum = e.sum()
+        r = e[y[k]]/e.sum()
         loss -= np.log(r)
 
         # backward propagation
         for j in xrange(W.shape[1]): # classes loop
-            c = (int(j==y[k])*a_sum-a[y[k]])/(a[y[k]]*a_sum)
+            #c = (int(j==y[k])*a_sum-a[y[k]])/(a[y[k]]*a_sum)
+            df = e[j]/e_sum - int(j==y[k])
+
             for i in xrange(W.shape[0]):  # features loop
-                dW[i,j] += -X[k,i]*a[j]*c
+                # dw = X[k,i]
+                dW[i,j] += df*X[k,i]
 
     loss /=num_train
     loss +=reg*np.sum(W*W)
@@ -98,12 +101,14 @@ def softmax_loss_vectorized(W, X, y, reg):
     loss = np.mean(L)+reg*np.sum(W*W)
 
     # backward propagation
+    # dL/df
     cls = np.tile(np.arange(10), [num_train, 1])
-    c = (cls == y[:, np.newaxis]).astype(int)
-    c = np.multiply(c, e_sum) - correct_class_ex
-    c = np.divide(c, np.multiply(correct_class_ex, e_sum))
-    c = np.multiply(c, e)
-    dW = -X.T.dot(c)
+    delta = (cls == y[:, np.newaxis]).astype(int)
+    df = np.divide(e,e_sum) - delta
+    # df/dw
+    dw = X.T
+    # dL/dw
+    dW = dw.dot(df)
 
     dW /= num_train
     #############################################################################
