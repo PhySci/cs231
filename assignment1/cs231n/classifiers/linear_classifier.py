@@ -1,8 +1,8 @@
 from __future__ import print_function
 
 import numpy as np
-from cs231n.classifiers.linear_svm import *
-from cs231n.classifiers.softmax import *
+from ..classifiers.linear_svm import *
+from ..classifiers.softmax import *
 from past.builtins import xrange
 
 
@@ -46,7 +46,7 @@ class LinearClassifier(object):
             loss_history.append(loss)
             self.W -=grad*learning_rate
 
-            if verbose and it % 100 == 0:
+            if verbose and it % 1000 == 0:
               print('iteration %d / %d: loss %f' % (it, num_iters, loss))
 
         return loss_history
