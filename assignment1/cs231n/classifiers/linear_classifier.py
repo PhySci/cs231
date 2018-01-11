@@ -11,7 +11,7 @@ class LinearClassifier(object):
     def __init__(self):
         self.W = None
 
-    def train(self, X, y, learning_rate=1e-3, reg=1e-5, num_iters=100, batch_size=200, verbose=False):
+    def train(self, X, y, learning_rate=1e-3, reg=1e-5, num_iters=100, batch_size=200, verbose=False, decay=0):
         """
         Train this linear classifier using stochastic gradient descent.
         :param
@@ -24,6 +24,7 @@ class LinearClassifier(object):
         - num_iters: (integer) number of steps to take when optimizing
         - batch_size: (integer) number of training examples to use at each step.
         - verbose: (boolean) If true, print progress during optimization.
+        - decay: decay rate for the learning rate.
 
         :return
         A list containing the value of the loss function at each training iteration.
@@ -37,6 +38,7 @@ class LinearClassifier(object):
 
         # Run stochastic gradient descent to optimize W
         loss_history = []
+        lr_history = []
         for it in xrange(num_iters):
             ids = np.random.choice(range(num_train), batch_size)
             X_batch = X[ids,:]
@@ -46,10 +48,15 @@ class LinearClassifier(object):
             loss_history.append(loss)
             self.W -=grad*learning_rate
 
-            if verbose and it % 1000 == 0:
-              print('iteration %d / %d: loss %f' % (it, num_iters, loss))
+            learning_rate *= (1-decay)
+            lr_history.append(learning_rate)
 
-        return loss_history
+            if verbose and it % 1000 == 0:
+              print('iteration %d / %d: loss %f, learning rate %.3e' % (it, num_iters, loss, learning_rate))
+
+
+
+        return [loss_history, lr_history]
 
     def predict(self, X):
         """

@@ -98,7 +98,7 @@ def softmax_loss_vectorized(W, X, y, reg):
     correct_class_ex = e.take(idx)
     correct_class_ex = correct_class_ex[:,np.newaxis]
     L = -np.log(np.divide(correct_class_ex, e_sum))
-    loss = np.mean(L)+reg*np.sum(W*W)
+    loss = np.mean(L)+0.5*reg*np.sum(W*W)
 
     # backward propagation
     # dL/df
@@ -109,7 +109,7 @@ def softmax_loss_vectorized(W, X, y, reg):
     dw = X.T
     # dL/dw
     dW = dw.dot(df)
-
+    dW += reg*W
     dW /= num_train
     #############################################################################
     #                          END OF YOUR CODE                                 #
