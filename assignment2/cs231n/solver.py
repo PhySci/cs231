@@ -8,7 +8,7 @@ import pickle as pickle
 
 import numpy as np
 
-from cs231n import optim
+from . import optim
 
 
 class Solver(object):
@@ -17,12 +17,12 @@ class Solver(object):
     models. The Solver performs stochastic gradient descent using different
     update rules defined in optim.py.
 
-    The solver accepts both training and validataion data and labels so it can
+    The solver accepts both training and validation data and labels so it can
     periodically check classification accuracy on both training and validation
     data to watch out for overfitting.
 
     To train a model, you will first construct a Solver instance, passing the
-    model, dataset, and various optoins (learning rate, batch size, etc) to the
+    model, dataset, and various options (learning rate, batch size, etc) to the
     constructor. You will then call the train() method to run the optimization
     procedure and train the model.
 
@@ -192,7 +192,12 @@ class Solver(object):
 
 
     def _save_checkpoint(self):
-        if self.checkpoint_name is None: return
+        """
+        Save the model
+        """
+
+        if self.checkpoint_name is None:
+            return
         checkpoint = {
           'model': self.model,
           'update_rule': self.update_rule,
@@ -251,6 +256,7 @@ class Solver(object):
         y_pred = np.hstack(y_pred)
         acc = np.mean(y_pred == y)
 
+        print(f'Accuracy is {acc:.3f}')
         return acc
 
 

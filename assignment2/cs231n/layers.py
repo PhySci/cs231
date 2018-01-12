@@ -1,7 +1,6 @@
 from builtins import range
 import numpy as np
 
-
 def affine_forward(x, w, b):
     """
     Computes the forward pass for an affine (fully-connected) layer.
@@ -20,43 +19,39 @@ def affine_forward(x, w, b):
     - out: output, of shape (N, M)
     - cache: (x, w, b)
     """
-    out = None
-    ###########################################################################
-    # TODO: Implement the affine forward pass. Store the result in out. You   #
-    # will need to reshape the input into rows.                               #
-    ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    out = np.reshape(x,[x.shape[0], -1]).dot(w)+b
     cache = (x, w, b)
     return out, cache
-
 
 def affine_backward(dout, cache):
     """
     Computes the backward pass for an affine layer.
 
-    Inputs:
+    :param
     - dout: Upstream derivative, of shape (N, M)
     - cache: Tuple of:
       - x: Input data, of shape (N, d_1, ... d_k)
       - w: Weights, of shape (D, M)
+      - b: bias coefficients
 
     Returns a tuple of:
     - dx: Gradient with respect to x, of shape (N, d1, ..., d_k)
     - dw: Gradient with respect to w, of shape (D, M)
     - db: Gradient with respect to b, of shape (M,)
     """
+
     x, w, b = cache
-    dx, dw, db = None, None, None
-    ###########################################################################
-    # TODO: Implement the affine backward pass.                               #
-    ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    r = np.reshape(x,[x.shape[0], -1])
+
+    dw = np.dot(r.T,dout)
+    assert (dw.shape == w.shape), 'Wrong shape of dw'
+
+    db = np.sum(dout, axis=0)
+    assert (db.shape == b.shape), 'Wrong shape of db'
+
+    dx = np.dot(dout, w.T).reshape(x.shape)
+    assert (dx.shape == x.shape), 'Wrong shape of dx'
+
     return dx, dw, db
 
 
@@ -71,14 +66,7 @@ def relu_forward(x):
     - out: Output, of the same shape as x
     - cache: x
     """
-    out = None
-    ###########################################################################
-    # TODO: Implement the ReLU forward pass.                                  #
-    ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    out = np.maximum(0,x)
     cache = x
     return out, cache
 
@@ -95,13 +83,9 @@ def relu_backward(dout, cache):
     - dx: Gradient with respect to x
     """
     dx, x = None, cache
-    ###########################################################################
-    # TODO: Implement the ReLU backward pass.                                 #
-    ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    mask = np.ones_like(x)
+    mask[x<0] = 0
+    dx = np.multiply(dout, mask)
     return dx
 
 
