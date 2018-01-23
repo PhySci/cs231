@@ -255,8 +255,6 @@ class Solver(object):
             y_pred.append(np.argmax(scores, axis=1))
         y_pred = np.hstack(y_pred)
         acc = np.mean(y_pred == y)
-
-        print(f'Accuracy is {acc:.3f}')
         return acc
 
 

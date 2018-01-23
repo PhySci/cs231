@@ -115,6 +115,7 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     Input:
     - x: Data of shape (N, D)
     - gamma: Scale parameter of shape (D,)
+        #######################################################################
     - beta: Shift paremeter of shape (D,)
     - bn_param: Dictionary with the following keys:
       - mode: 'train' or 'test'; required
@@ -136,37 +137,17 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     running_var = bn_param.get('running_var', np.zeros(D, dtype=x.dtype))
 
     out, cache = None, None
+
+    sample_mean = np.mean(x, axis=0, keepdims=True)
+    sample_var = np.var(x, axis=0, keepdims=True)
+    x2 = np.divide(x - sample_mean, np.sqrt(sample_var + eps))
+    out = np.multiply(x2, gamma) + beta
+
     if mode == 'train':
-        #######################################################################
-        # TODO: Implement the training-time forward pass for batch norm.      #
-        # Use minibatch statistics to compute the mean and variance, use      #
-        # these statistics to normalize the incoming data, and scale and      #
-        # shift the normalized data using gamma and beta.                     #
-        #                                                                     #
-        # You should store the output in the variable out. Any intermediates  #
-        # that you need for the backward pass should be stored in the cache   #
-        # variable.                                                           #
-        #                                                                     #
-        # You should also use your computed sample mean and variance together #
-        # with the momentum variable to update the running mean and running   #
-        # variance, storing your result in the running_mean and running_var   #
-        # variables.                                                          #
-        #######################################################################
-        pass
-        #######################################################################
-        #                           END OF YOUR CODE                          #
-        #######################################################################
+        running_mean = momentum * running_mean + (1 - momentum) * sample_mean
+        running_var = momentum * running_var + (1 - momentum) * sample_var
     elif mode == 'test':
-        #######################################################################
-        # TODO: Implement the test-time forward pass for batch normalization. #
-        # Use the running mean and variance to normalize the incoming data,   #
-        # then scale and shift the normalized data using gamma and beta.      #
-        # Store the result in the out variable.                               #
-        #######################################################################
         pass
-        #######################################################################
-        #                          END OF YOUR CODE                           #
-        #######################################################################
     else:
         raise ValueError('Invalid forward batchnorm mode "%s"' % mode)
 

@@ -45,7 +45,6 @@ class TwoLayerNet(object):
         self.params["b1"] = weight_scale * np.zeros(hidden_dim)
         self.params["b2"] = weight_scale * np.zeros(num_classes)
 
-
     def loss(self, X, y=None):
         """
         Compute loss and gradient for a minibatch of data.
@@ -84,9 +83,11 @@ class TwoLayerNet(object):
         #backward pass
         dout1, dW2, db2 = affine_backward(dscores, cache2)
         dW2 += self.reg*self.params["W2"]
+        db2 += self.reg * self.params["b2"]
 
         dx, dW1, db1 = affine_relu_backward(dout1, cache1)
         dW1 += self.reg * self.params["W1"]
+        db1 += self.reg * self.params["b1"]
 
         grads["W1"], grads["W2"], grads["b1"], grads["b2"] = dW1, dW2, db1, db2
 
@@ -151,10 +152,12 @@ class FullyConnectedNet(object):
         # beta2, etc. Scale parameters should be initialized to one and shift      #
         # parameters should be initialized to zero.                                #
         ############################################################################
-        pass
-        ############################################################################
-        #                             END OF YOUR CODE                             #
-        ############################################################################
+
+        # init first layer
+        layer_size = [input_dim] + hidden_dims + [num_classes]
+        for l in range(1, len(layer_size)):
+            self.params["W" + str(l)] = weight_scale*np.random.randn(layer_size[l-1], layer_size[l])
+            self.params["b" + str(l)] = weight_scale*np.zeros(layer_size[l])
 
         # When using dropout we need to pass a dropout_param dictionary to each
         # dropout layer so that the layer knows the dropout probability and the mode
@@ -201,6 +204,8 @@ class FullyConnectedNet(object):
         # TODO: Implement the forward pass for the fully-connected net, computing  #
         # the class scores for X and storing them in the scores variable.          #
         #                                                                          #
+        # {affine - [batch norm] - relu - [dropout]} x (L - 1) - affine-softmax  #
+        #                                                                          #
         # When using dropout, you'll need to pass self.dropout_param to each       #
         # dropout forward pass.                                                    #
         #                                                                          #
@@ -209,10 +214,30 @@ class FullyConnectedNet(object):
         # self.bn_params[1] to the forward pass for the second batch normalization #
         # layer, etc.                                                              #
         ############################################################################
-        pass
-        ############################################################################
-        #                             END OF YOUR CODE                             #
-        ############################################################################
+        out = X
+        cache = {}
+        for l in range(1, self.num_layers):
+            # affine
+            out, cache[str(l)+'_affine'] = affine_forward(out, self.params["W"+str(l)], self.params["b"+str(l)])
+
+            # batchnorm
+            if self.use_batchnorm:
+                # @TODO add running mean calculation
+                # running_mean = momentum * running_mean + (1 - momentum) * sample_mean
+                # running_var = momentum * running_var + (1 - momentum) * sample_var
+                running_mean = 1
+                running_vars = 1
+                out, cache[str(l)+'_batchnorm'] = batchnorm_forward(out, running_mean, running_vars, self.bn_params[l-1])
+
+            # relu
+            out, cache[str(l)+'_relu'] = relu_forward(out)
+
+            # dropout
+            if self.use_dropout:
+                out, cache[str(l)+'_dropout'] = dropout_forward(out, self.dropout_param)
+
+        scores, cache[str(self.num_layers)+'_affine'] = \
+            affine_forward(out, self.params["W"+str(self.num_layers)], self.params["b"+str(self.num_layers)])
 
         # If test mode return early
         if mode == 'test':
@@ -232,9 +257,46 @@ class FullyConnectedNet(object):
         # automated tests, make sure that your L2 regularization includes a factor #
         # of 0.5 to simplify the expression for the gradient.                      #
         ############################################################################
-        pass
-        ############################################################################
-        #                             END OF YOUR CODE                             #
-        ############################################################################
+
+
+        loss, dscores = softmax_loss(scores, y)
+
+        for l in range(1,self.num_layers+1):
+            loss += 0.5*self.reg*np.sum(self.params["W"+str(l)]*self.params["W"+str(l)])
+
+        # backward pass
+        dout, dW, db = affine_backward(dscores, cache[str(self.num_layers) + '_affine'])
+        grads["W" + str(self.num_layers)] = dW + self.reg * self.params["W" + str(self.num_layers)]
+        grads["b" + str(self.num_layers)] = db + self.reg * self.params["b" + str(self.num_layers)]
+
+        for l in reversed(range(1, self.num_layers)):
+
+            # {affine - [batch norm] - relu - [dropout]}
+
+            # dropout
+            if self.use_dropout:
+                dout = dropout_backward(dout, cache[str(l) + '_dropout'])
+
+            # relu
+            dout = relu_backward(dout, cache[str(l) + '_relu'])
+
+            # batchnorm
+            if self.use_batchnorm:
+                # @TODO add running mean calculation
+                # running_mean = momentum * running_mean + (1 - momentum) * sample_mean
+                # running_var = momentum * running_var + (1 - momentum) * sample_var
+                running_mean = 1
+                running_vars = 1
+                out, cache[str(l) + '_batchnorm'] = batchnorm_forward(out, running_mean, running_vars,
+                                                                      self.bn_params[l - 1])
+
+            # affine
+            dout, dW, db = \
+                affine_backward(dout, cache[str(l) + '_affine'])
+
+            # add regularization
+            grads["W" + str(l)] = dW + self.reg * self.params["W" + str(l)]
+            grads["b" + str(l)] = db + self.reg * self.params["b" + str(l)]
+
 
         return loss, grads
